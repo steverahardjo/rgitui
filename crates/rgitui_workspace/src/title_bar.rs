@@ -51,6 +51,98 @@ impl TitleBar {
         self
     }
 
+    fn render_traffic_light(
+        id: &'static str,
+        color: gpui::Hsla,
+        hover_color: gpui::Hsla,
+        tooltip: &'static str,
+        action: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
+    ) -> gpui::Stateful<gpui::Div> {
+        let dot = div()
+            .id(id)
+            .w(px(12.))
+            .h(px(12.))
+            .rounded_full()
+            .bg(color)
+            .hover(move |s| s.bg(hover_color))
+            .cursor_pointer()
+            .on_click(action)
+            .tooltip(Tooltip::text(tooltip));
+
+        dot
+    }
+
+    fn render_traffic_lights() -> impl gpui::IntoElement {
+        let close_color = gpui::Hsla {
+            h: 3.0,
+            s: 0.93,
+            l: 0.67,
+            a: 1.0,
+        };
+        let close_hover = gpui::Hsla {
+            h: 3.0,
+            s: 0.93,
+            l: 0.57,
+            a: 1.0,
+        };
+        let minimize_color = gpui::Hsla {
+            h: 52.0,
+            s: 0.98,
+            l: 0.59,
+            a: 1.0,
+        };
+        let minimize_hover = gpui::Hsla {
+            h: 52.0,
+            s: 0.98,
+            l: 0.49,
+            a: 1.0,
+        };
+        let maximize_color = gpui::Hsla {
+            h: 120.0,
+            s: 0.64,
+            l: 0.55,
+            a: 1.0,
+        };
+        let maximize_hover = gpui::Hsla {
+            h: 120.0,
+            s: 0.64,
+            l: 0.45,
+            a: 1.0,
+        };
+
+        div()
+            .h_flex()
+            .gap(px(6.))
+            .items_center()
+            .child(Self::render_traffic_light(
+                "traffic-close",
+                close_color,
+                close_hover,
+                "Close",
+                |_, window, _| {
+                    window.remove_window();
+                },
+            ))
+            .child(Self::render_traffic_light(
+                "traffic-minimize",
+                minimize_color,
+                minimize_hover,
+                "Minimize",
+                |_, window, _| {
+                    window.minimize_window();
+                },
+            ))
+            .child(Self::render_traffic_light(
+                "traffic-maximize",
+                maximize_color,
+                maximize_hover,
+                "Maximize",
+                |_, window, _| {
+                    window.zoom_window();
+                },
+            ))
+    }
+
     fn render_separator(colors: &rgitui_theme::ThemeColors) -> gpui::Div {
         div()
             .w(px(1.))
@@ -227,6 +319,7 @@ impl RenderOnce for TitleBar {
                 .h_flex()
                 .gap(px(12.))
                 .items_center()
+                .child(Self::render_traffic_lights())
                 .child(Self::render_keyboard_hint(
                     colors,
                     "Ctrl+Shift+P",
